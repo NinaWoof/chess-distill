@@ -1,4 +1,10 @@
 import argparse
+import sys
+import os
+
+# Add src to path so we can import chess_distill without installation
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
+
 from chess_distill import config
 from chess_distill.train import train
 
