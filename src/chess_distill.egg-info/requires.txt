@@ -1,0 +1,9 @@
+torch
+chess
+numpy
+tqdm
+pyarrow
+pandas
+rich
+pytest
+ruff

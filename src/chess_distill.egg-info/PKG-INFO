@@ -1,0 +1,15 @@
+Metadata-Version: 2.4
+Name: chess-distill
+Version: 0.1.0
+Summary: Distilling Stockfish into a Policy+Value network
+Author: Senior ML Engineer
+Requires-Python: >=3.11
+Requires-Dist: torch
+Requires-Dist: chess
+Requires-Dist: numpy
+Requires-Dist: tqdm
+Requires-Dist: pyarrow
+Requires-Dist: pandas
+Requires-Dist: rich
+Requires-Dist: pytest
+Requires-Dist: ruff
