@@ -1,0 +1,15 @@
+.git
+.venv
+__pycache__
+*.pyc
+.DS_Store
+.pytest_cache
+checkpoints/
+*.parquet
+!data/dataset_lichess.parquet
+tests/
+Makefile
+README.md
+PROJECT_DOCS.md
+Dockerfile
+.dockerignore
