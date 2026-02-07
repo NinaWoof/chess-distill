@@ -77,9 +77,10 @@ class MCTSNode:
         node = self
         while node is not None:
             node.visit_count += 1
-            # Flip value for opponent's perspective
+            # Since board encoding is perspective-invariant (always "us" at bottom),
+            # the value is already from the current player's POV at each node.
+            # No need to flip the value.
             node.value_sum += value
-            value = -value
             node = node.parent
 
 

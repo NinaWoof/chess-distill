@@ -11,10 +11,11 @@ Distill the knowledge of a powerful UCI engine (Stockfish) into a lightweight Po
 - **Input Channels (16x8x8)**:
   - 6 planes for Friendly pieces (P, N, B, R, Q, K)
   - 6 planes for Opponent pieces (p, n, b, r, q, k)
-  - 1 plane for Side to Move
+  - 1 plane for Side to Move (constant 1.0 - perspective-invariant)
   - 1 plane for Castling Rights
   - 1 plane for En Passant
   - 1 plane for Halfmove Clock (normalized)
+- **Perspective Invariance**: Board is always flipped so the active player is at the bottom (rank mirroring for Black).
 
 ### B. Move Encoding (`src/chess_distill/moves.py`)
 - **AlphaZero-style (8x8x73)**:
@@ -27,11 +28,12 @@ Distill the knowledge of a powerful UCI engine (Stockfish) into a lightweight Po
 - **Policy Head**: Outputs logits for 4,672 possible moves.
 - **Value Head**: Outputs a single scalar in `[-1, 1]`.
 
-### D. MCTS Inference (`src/chess_distill/mcts.py`) — Phase 1
+### D. MCTS Inference (`src/chess_distill/mcts.py`)
 - **PUCT Algorithm**: Uses policy network as prior, value network for evaluation.
-- **Default**: 200 simulations per move.
+- **Default**: 200 simulations per move (configurable: 800-1600 for stronger play).
 - **Selection**: UCB1 with exploration constant (c_puct = 1.5).
 - **Temperature**: Configurable for training (exploratory) vs play (greedy).
+- **Value Backup**: Perspective-invariant (no value negation during backup).
 
 ## 3. Data Pipeline (`scripts/gen_labels.py`)
 - **Sources**: PGN databases (Lichess, etc.) or random playouts.
@@ -62,24 +64,35 @@ Distill the knowledge of a powerful UCI engine (Stockfish) into a lightweight Po
 - **UCI Protocol (`src/chess_distill/uci.py`)**: Implements standard commands with MCTS support. Configurable via `setoption`.
 - **Interactive CLI (`scripts/play_cli.py`)**: Play against the model with optional MCTS.
 
-## 6. Project History & Decisions
+## 6. Evaluation & Diagnostics
+- **Stockfish Evaluation (`scripts/eval_vs_stockfish.py`)**: Automated testing against Stockfish with configurable depth, time limits, and MCTS simulations.
+  - Outputs JSON results and PGN games for analysis.
+  - Supports quiet mode for batch testing.
+- **Move Diagnostics (`scripts/diagnose_moves.py`)**: Tests move encoding/decoding symmetry, board encoding consistency, and model predictions.
+- **MCTS Testing (`scripts/test_mcts.py`)**: Verifies MCTS move selection and visit counts.
+
+## 7. Project History & Decisions
 - **Phase 1 (Feb 2026)**: Scaled model to 12×128, added MCTS, improved data quality.
+- **Bug Fix (Feb 7, 2026)**: Fixed MCTS value backup bug causing inverted move preferences. Model now plays proper openings (d4, Nf3, e4) instead of suicidal moves (h4, Rh3).
 - **Dependency Management**: Standardized on `uv` for lightning-fast environment setup.
 - **Deterministic Samples**: The data generator uses random offsets to sample diverse positions.
 - **Environment Safety**: Included `verify_env.py` to ensure Stockfish and MPS are ready.
 
-## 7. Key File Map
+## 8. Key File Map
 | File | Purpose |
 | :--- | :--- |
 | `pyproject.toml` | Dependency definition |
 | `src/chess_distill/config.py` | Global constants, model config, MCTS settings |
 | `src/chess_distill/model.py` | Neural network definition |
-| `src/chess_distill/mcts.py` | Monte Carlo Tree Search (Phase 1) |
+| `src/chess_distill/mcts.py` | Monte Carlo Tree Search |
 | `scripts/gen_labels.py` | Parallel data collection from Stockfish |
 | `scripts/train_policy_value.py` | Training entry point |
 | `scripts/play_cli.py` | Human vs Model terminal play |
+| `scripts/eval_vs_stockfish.py` | Automated evaluation against Stockfish |
+| `scripts/diagnose_moves.py` | Move encoding and model prediction diagnostics |
+| `scripts/test_mcts.py` | MCTS move selection testing |
 | `src/chess_distill/dataset.py` | PyTorch dataset with augmentation |
 | `Makefile` | Quick-access commands |
 
 ---
-*Updated for Phase 1 — February 6th, 2026.*
+*Updated for Phase 1 — February 7th, 2026.*

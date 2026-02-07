@@ -55,16 +55,37 @@ python scripts/train_policy_value.py --data data/dataset.parquet --epochs 50
 
 ### 6. Play
 ```bash
-# With MCTS (stronger, default)
+# With MCTS (stronger, default 200 simulations)
 python scripts/play_cli.py --ckpt checkpoints/latest.pt --simulations 200
+
+# With more MCTS simulations (stronger but slower)
+python scripts/play_cli.py --ckpt checkpoints/latest.pt --simulations 800
 
 # Without MCTS (faster, weaker)
 python scripts/play_cli.py --ckpt checkpoints/latest.pt --no-mcts
 ```
 
+### 7. Evaluate
+```bash
+# Quick evaluation against Stockfish depth 5
+python scripts/eval_vs_stockfish.py --ckpt checkpoints/best.pt --games 10 \
+  --sf-depth 5 --sf-time 0.1
+
+# Stronger evaluation with more MCTS simulations
+python scripts/eval_vs_stockfish.py --ckpt checkpoints/best.pt --games 10 \
+  --simulations 800 --sf-depth 5 --sf-time 0.1
+
+# Run diagnostics to verify model correctness
+python scripts/diagnose_moves.py --ckpt checkpoints/best.pt
+
+# Test MCTS move selection
+python scripts/test_mcts.py
+```
+
 ## Key Features
 
-- **MCTS Inference** (Phase 1): Uses PUCT-based Monte Carlo Tree Search with 200 simulations for stronger move selection.
+- **MCTS Inference**: Uses PUCT-based Monte Carlo Tree Search with configurable simulations (200-1600) for stronger move selection.
+- **Bug Fix (Feb 7, 2026)**: Fixed MCTS value backup bug - model now plays proper openings (d4, Nf3, e4) instead of suicidal moves.
 - **Knowledge Distillation**: Trains on the full MultiPV output (top 10 moves) from Stockfish, using soft targets to capture the engine's "certainty" about a position.
 - **Horizontal Symmetry Augmentation**: Automatically flips boards and moves horizontally during training to improve generalization.
 - **AdamW + OneCycleLR**: Optimized for Apple Silicon using Metal Performance Shaders (MPS) with an advanced learning rate schedule for faster convergence.
@@ -91,3 +112,10 @@ python scripts/play_cli.py --ckpt checkpoints/latest.pt --no-mcts
 - **Parallel Processing**: Uses multiprocessing for ~6-10x speedup on multi-core systems
 - **Automatic Resume**: Saves progress periodically; restarts from last checkpoint
 - **PGN Support**: Extracts positions from real games for higher quality data
+- **Recommended Scale**: 1M+ positions for strong tactical awareness
+
+## Performance Notes
+
+- **Current Status**: Model plays proper openings (d4, Nf3, e4, Scandinavian Defense)
+- **Tactical Vision**: Scales with MCTS simulations (800-1600 recommended for competitive play)
+- **Training Data**: More data (1M+ positions) significantly improves tactical awareness

@@ -42,9 +42,9 @@ def board_to_tensor(board: chess.Board) -> torch.Tensor:
                 rank = 7 - rank
             tensor[i + 6, rank, file] = 1
             
-    # Plane 12: Side to move (relative color - 1 if White is to move, -1 if Black?)
-    # Since we mirrored, "we" are always the active player.
-    tensor[12, :, :] = 1.0 if us == chess.WHITE else -1.0
+    # Plane 12: Side to move - constant 1.0 since board is already perspective-invariant
+    # Using -1.0 for Black is redundant and can cause issues with ReLU activations
+    tensor[12, :, :] = 1.0
         
     # Plane 13: Castling rights (mirrored)
     # White view: (0,0) (0,7). Black view: (7,0) (7,7) mirrored to (0,0) (0,7)
